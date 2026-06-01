@@ -1,5 +1,7 @@
-// 120+ reflective questions across categories
-const QUESTIONS = [
+// ============================================
+//  DEEP REFLECTION QUESTIONS (left reel)
+// ============================================
+const DEEP_QUESTIONS = [
   // Life & meaning
   "If your life were a book, what would the title of this current chapter be?",
   "What does a 'meaningful' day look like to you, in concrete detail?",
@@ -142,7 +144,79 @@ const QUESTIONS = [
   "What's been quietly going right in your life that you haven't acknowledged?",
 ];
 
-// 50+ research topics — single words or short phrases the user can dig into
+// ============================================
+//  SIMPLE DAILY QUESTIONS (right reel)
+//  Easy, warm, everyday prompts to balance the deeper one
+// ============================================
+const SIMPLE_QUESTIONS = [
+  "How do you feel today? Name one word.",
+  "What was the happiest moment today, even a tiny one?",
+  "What did you eat that you actually enjoyed today?",
+  "What's the weather doing where you are?",
+  "What's the first thing you noticed when you woke up?",
+  "Who did you talk to today?",
+  "What made you laugh recently?",
+  "What's one small thing that went well today?",
+  "What are you looking forward to this week?",
+  "Did you go outside today? How was it?",
+  "What's something you're wearing today that you like?",
+  "What's a sound you noticed today?",
+  "What's a color you saw a lot of today?",
+  "What did you drink today? Was it good?",
+  "Are you tired right now? On a scale of 1–10?",
+  "What's the last song you listened to?",
+  "What's been on your mind in the background today?",
+  "What's one thing you finished today, big or small?",
+  "What did your body need today that you gave it (or didn't)?",
+  "Who texted or called you today?",
+  "What's the last thing that made you smile?",
+  "What's one thing you saw outside today?",
+  "What's something kind you did today (for yourself or someone else)?",
+  "What's been frustrating today?",
+  "What time did you wake up? How did you feel about it?",
+  "What's one thing you're grateful for right now?",
+  "What's the messiest spot in your space today?",
+  "Did you move your body today? How?",
+  "What's a smell you noticed today?",
+  "What's a tiny win from today?",
+  "What's something you wish you'd done differently today?",
+  "What's a phrase you said (or heard) a lot today?",
+  "What did you scroll past that stuck with you?",
+  "How is your energy right now? Like a battery percentage.",
+  "What's one thing you're putting off?",
+  "What's a small comfort you're enjoying right now?",
+  "Did you learn anything new today, even something tiny?",
+  "What's the most beautiful thing you saw today?",
+  "Who made today easier for you?",
+  "What's something you want to remember about today?",
+  "What's something you'd like to leave behind today?",
+  "What did you say 'yes' to today? What did you say 'no' to?",
+  "If today were a flavor, what would it taste like?",
+  "What's the temperature of your mood right now?",
+  "What's one thing you want to do before bed?",
+  "What does the inside of your head sound like right now?",
+  "What's a tiny pleasure you've had today?",
+  "What's the last photo you took? Why did you take it?",
+  "What's been the easiest part of today?",
+  "What's been the hardest part of today?",
+  "What time is it where you are, and how do you feel about it?",
+  "What did your morning look like today?",
+  "What does the rest of today look like for you?",
+  "What's a sentence you'd write on a postcard about today?",
+  "If your day were weather, what would the forecast say?",
+  "What's a thought that keeps looping today?",
+  "How does your space feel today — cozy, cluttered, calm, chaotic?",
+  "What's something you noticed about a stranger today?",
+  "Did you laugh out loud today? At what?",
+  "What's the best thing you ate this week?",
+  "What's a small habit you actually did today?",
+  "What's something you'd like more of tomorrow?",
+];
+
+// Backwards-compat alias (older code refers to QUESTIONS)
+const QUESTIONS = [...DEEP_QUESTIONS, ...SIMPLE_QUESTIONS];
+
+// 60+ research topics — single words or short phrases the user can dig into
 const RESEARCH_TOPICS = [
   "Sadness",
   "Sustainability",

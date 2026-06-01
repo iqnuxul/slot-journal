@@ -9,12 +9,13 @@ const STORAGE_KEYS = {
 };
 
 // ---------- helpers ----------
-function pickTwoDistinct(arr) {
-  if (arr.length < 2) return [arr[0], arr[0]];
-  const i = Math.floor(Math.random() * arr.length);
-  let j = Math.floor(Math.random() * arr.length);
-  while (j === i) j = Math.floor(Math.random() * arr.length);
-  return [arr[i], arr[j]];
+function pickOne(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function pickOnePair() {
+  // One deep, one simple — always one of each
+  return [pickOne(DEEP_QUESTIONS), pickOne(SIMPLE_QUESTIONS)];
 }
 
 function todayKey() {
@@ -87,11 +88,10 @@ function setReel(reelEl, text) {
   reelEl.querySelector('.reel-strip').innerHTML = `<div class="reel-item">${text}</div>`;
 }
 
-function spinReel(reelEl, finalText, durationMs, onTick) {
+function spinReel(reelEl, finalText, durationMs, pool, onTick) {
   reelEl.classList.add('spinning');
   const interval = setInterval(() => {
-    const sample = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
-    setReel(reelEl, sample);
+    setReel(reelEl, pickOne(pool));
     if (onTick) onTick();
   }, 70);
   return new Promise(resolve => {
@@ -113,12 +113,12 @@ async function pullLever() {
   lever.classList.add('pulled');
   setTimeout(() => lever.classList.remove('pulled'), 700);
 
-  const [q1, q2] = pickTwoDistinct(QUESTIONS);
-  currentPrompts = [q1, q2];
+  const [qDeep, qSimple] = pickOnePair();
+  currentPrompts = [qDeep, qSimple];
 
   await Promise.all([
-    spinReel(reel1, q1, 1500, reelClick),
-    spinReel(reel2, q2, 2300, reelClick),
+    spinReel(reel1, qDeep, 1500, DEEP_QUESTIONS, reelClick),
+    spinReel(reel2, qSimple, 2300, SIMPLE_QUESTIONS, reelClick),
   ]);
 
   jackpot();
@@ -175,67 +175,91 @@ journalBtn.addEventListener('click', () => {
 });
 
 // ============================================
-//  JOURNAL
+//  JOURNAL — one writing box per prompt
 // ============================================
-const journalText = document.getElementById('journal-text');
 const promptsDisplay = document.getElementById('prompts-display');
 const paperDate = document.getElementById('paper-date');
 const downloadBtn = document.getElementById('download-btn');
-const clearBtn = document.getElementById('clear-btn');
 
 paperDate.textContent = prettyDate();
 
+// In-memory cache of the two answers
+let currentAnswers = ['', ''];
+
+function readSavedEntry() {
+  const raw = localStorage.getItem(STORAGE_KEYS.journal + todayKey());
+  if (!raw) return null;
+  try {
+    const obj = JSON.parse(raw);
+    // back-compat: old single-text shape → put it under answer 1
+    if (typeof obj.text === 'string' && !obj.answers) {
+      obj.answers = [obj.text, ''];
+      delete obj.text;
+    }
+    return obj;
+  } catch (e) { return null; }
+}
+
+function saveEntry() {
+  localStorage.setItem(STORAGE_KEYS.journal + todayKey(), JSON.stringify({
+    answers: currentAnswers,
+    prompts: currentPrompts,
+    savedAt: new Date().toISOString(),
+  }));
+}
+
 function renderJournalPrompts() {
   if (!currentPrompts) {
-    promptsDisplay.innerHTML = `<p class="prompt-item" style="opacity:0.6;font-style:italic;">Pull the lever above to get today's prompts.</p>`;
+    promptsDisplay.innerHTML = `<p class="empty-hint">Pull the lever above to get today's prompts.</p>`;
     return;
   }
   promptsDisplay.innerHTML = currentPrompts.map((p, i) => `
-    <div class="prompt-item"><span class="num">${i+1}.</span>${p}</div>
+    <div class="prompt-block">
+      <div class="prompt-item"><span class="num">${i + 1}.</span><span class="prompt-text">${p}</span></div>
+      <textarea class="prompt-answer" data-idx="${i}" rows="6" placeholder="Write your answer here…">${(currentAnswers[i] || '').replace(/</g, '&lt;')}</textarea>
+    </div>
   `).join('');
-}
-renderJournalPrompts();
 
-// load saved entry
+  // Wire up auto-save
+  promptsDisplay.querySelectorAll('textarea.prompt-answer').forEach(ta => {
+    ta.addEventListener('input', () => {
+      const idx = parseInt(ta.dataset.idx, 10);
+      currentAnswers[idx] = ta.value;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveEntry, 400);
+    });
+  });
+}
+
+let saveTimer;
+
 function loadEntry() {
-  const saved = localStorage.getItem(STORAGE_KEYS.journal + todayKey());
-  if (saved) {
-    try {
-      const obj = JSON.parse(saved);
-      journalText.value = obj.text || '';
-      if (obj.prompts && obj.prompts.length === 2) {
-        currentPrompts = obj.prompts;
-        setReel(reel1, obj.prompts[0]);
-        setReel(reel2, obj.prompts[1]);
-        copyBtn.disabled = false;
-        journalBtn.disabled = false;
-        renderJournalPrompts();
-      }
-    } catch (e) {}
+  const obj = readSavedEntry();
+  if (!obj) { renderJournalPrompts(); return; }
+  if (obj.prompts && obj.prompts.length === 2) {
+    currentPrompts = obj.prompts;
+    setReel(reel1, obj.prompts[0]);
+    setReel(reel2, obj.prompts[1]);
+    copyBtn.disabled = false;
+    journalBtn.disabled = false;
   }
+  currentAnswers = Array.isArray(obj.answers) ? obj.answers.slice(0, 2) : ['', ''];
+  while (currentAnswers.length < 2) currentAnswers.push('');
+  renderJournalPrompts();
 }
 loadEntry();
 
-// auto-save
-let saveTimer;
-journalText.addEventListener('input', () => {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    localStorage.setItem(STORAGE_KEYS.journal + todayKey(), JSON.stringify({
-      text: journalText.value,
-      prompts: currentPrompts,
-      savedAt: new Date().toISOString(),
-    }));
-  }, 400);
-});
-
 downloadBtn.addEventListener('click', () => {
   const date = prettyDate();
-  const promptsBlock = currentPrompts
-    ? `Prompts:\n1. ${currentPrompts[0]}\n2. ${currentPrompts[1]}\n\n`
-    : '';
-  const content = `Reflection Machine — ${date}\n\n${promptsBlock}${journalText.value || '(empty)'}\n`;
-  const blob = new Blob([content], { type: 'text/plain' });
+  let body = `Reflection Machine — ${date}\n\n`;
+  if (currentPrompts) {
+    currentPrompts.forEach((p, i) => {
+      body += `${i + 1}. ${p}\n${currentAnswers[i] || '(empty)'}\n\n`;
+    });
+  } else {
+    body += '(no prompts yet — pull the lever first)\n';
+  }
+  const blob = new Blob([body], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -244,19 +268,27 @@ downloadBtn.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-clearBtn.addEventListener('click', () => {
-  if (!confirm("Clear today's entry? This cannot be undone.")) return;
-  journalText.value = '';
-  localStorage.removeItem(STORAGE_KEYS.journal + todayKey());
-});
-
 // ============================================
-//  RESEARCH TOPIC
+//  RESEARCH TOPIC — hand-drawn bell + rope + slip
 // ============================================
-const researchBtn = document.getElementById('research-btn');
-const researchWord = document.getElementById('research-word');
-const researchSub = document.getElementById('research-sub');
+const bellScene = document.getElementById('bell-scene');
+const ropeGrip = document.getElementById('rope-grip');
+const paperSlip = document.getElementById('paper-slip');
+const paperWord = document.getElementById('paper-slip-word');
+const paperSub = document.getElementById('paper-slip-sub');
+const bellHint = document.getElementById('bell-hint');
 const researchPrompts = document.getElementById('research-prompts');
+
+let isRinging = false;
+
+function showSlip(topic, weekLabel, locked) {
+  paperWord.textContent = topic;
+  paperSub.textContent = locked ? `locked in · ${weekLabel}` : `your topic · ${weekLabel}`;
+  // restart animation
+  paperSlip.classList.remove('visible');
+  void paperSlip.offsetWidth;
+  paperSlip.classList.add('visible');
+}
 
 function loadOrPickWeekTopic() {
   const week = isoWeek();
@@ -265,9 +297,13 @@ function loadOrPickWeekTopic() {
     try {
       const obj = JSON.parse(saved);
       if (obj.week === week && obj.topic) {
-        researchWord.textContent = obj.topic;
-        researchSub.textContent = `Locked in for ${week}. Sit with it.`;
+        // skip animation on initial load — just show the slip in place
+        paperWord.textContent = obj.topic;
+        paperSub.textContent = `locked in · ${week}`;
+        paperSlip.style.opacity = '1';
+        paperSlip.style.transform = 'translateX(-50%) translateY(175px) rotate(-1.5deg) scale(1)';
         researchPrompts.hidden = false;
+        bellHint.textContent = `This week's word is yours. Pull again to re-ring, hold ⌥/Alt to re-roll.`;
         return;
       }
     } catch (e) {}
@@ -275,56 +311,76 @@ function loadOrPickWeekTopic() {
 }
 loadOrPickWeekTopic();
 
-function pickResearch(force = false) {
+function ringBell(force = false) {
+  if (isRinging) return;
+  isRinging = true;
+
   const week = isoWeek();
   const saved = localStorage.getItem(STORAGE_KEYS.research);
+  let topic;
+  let locked = false;
 
   if (!force && saved) {
     try {
       const obj = JSON.parse(saved);
       if (obj.week === week && obj.topic) {
-        // already have one this week — just re-animate
-        flickerWord(obj.topic);
-        researchSub.textContent = `Already locked in for ${week}. Stick with it, or hold ⌥/Alt and click to re-roll.`;
-        return;
+        topic = obj.topic;
+        locked = true;
       }
     } catch (e) {}
   }
 
-  let topic;
-  do {
-    topic = RESEARCH_TOPICS[Math.floor(Math.random() * RESEARCH_TOPICS.length)];
-  } while (saved && JSON.parse(saved).topic === topic && RESEARCH_TOPICS.length > 1);
+  if (!topic) {
+    let prev = null;
+    try { prev = saved ? JSON.parse(saved).topic : null; } catch (e) {}
+    do {
+      topic = RESEARCH_TOPICS[Math.floor(Math.random() * RESEARCH_TOPICS.length)];
+    } while (topic === prev && RESEARCH_TOPICS.length > 1);
+    localStorage.setItem(STORAGE_KEYS.research, JSON.stringify({ week, topic, pickedAt: new Date().toISOString() }));
+  }
+
+  // reset inline styles set by initial load so the animation works
+  paperSlip.style.opacity = '';
+  paperSlip.style.transform = '';
+
+  bellScene.classList.remove('ringing');
+  void bellScene.offsetWidth;
+  bellScene.classList.add('ringing');
 
   bellRing();
-  flickerWord(topic);
-  researchSub.textContent = `Locked in for ${week}. Sit with it.`;
-  researchPrompts.hidden = false;
-  localStorage.setItem(STORAGE_KEYS.research, JSON.stringify({ week, topic, pickedAt: new Date().toISOString() }));
+
+  // Show the slip ~300ms in, after the first big swing
+  setTimeout(() => showSlip(topic, week, locked), 280);
+
+  setTimeout(() => {
+    bellScene.classList.remove('ringing');
+    isRinging = false;
+    researchPrompts.hidden = false;
+    bellHint.textContent = locked
+      ? `Already drawn for ${week}. Hold ⌥/Alt and pull to re-roll.`
+      : `Locked in for the week. Pull again any time to re-ring.`;
+  }, 1700);
 }
 
-function flickerWord(finalWord) {
-  let frames = 0;
-  const maxFrames = 14;
-  researchWord.classList.remove('changing');
-  // void offsetWidth to restart animation
-  void researchWord.offsetWidth;
-
-  const interval = setInterval(() => {
-    if (frames < maxFrames) {
-      researchWord.textContent = RESEARCH_TOPICS[Math.floor(Math.random() * RESEARCH_TOPICS.length)];
-      frames++;
-    } else {
-      clearInterval(interval);
-      researchWord.textContent = finalWord;
-      researchWord.classList.add('changing');
-    }
-  }, 60);
-}
-
-researchBtn.addEventListener('click', (e) => {
-  pickResearch(e.altKey || e.metaKey);
+ropeGrip.addEventListener('click', (e) => {
+  ringBell(e.altKey || e.metaKey);
 });
+
+// drag-down support
+let ropeDragY = null;
+ropeGrip.addEventListener('pointerdown', (e) => {
+  ropeDragY = e.clientY;
+  ropeGrip.setPointerCapture(e.pointerId);
+});
+ropeGrip.addEventListener('pointermove', (e) => {
+  if (ropeDragY === null) return;
+  if (e.clientY - ropeDragY > 30) {
+    ropeDragY = null;
+    ringBell(e.altKey || e.metaKey);
+  }
+});
+ropeGrip.addEventListener('pointerup', () => { ropeDragY = null; });
+ropeGrip.addEventListener('pointercancel', () => { ropeDragY = null; });
 
 // ============================================
 //  COUNTER

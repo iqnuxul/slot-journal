@@ -26,24 +26,28 @@
       <div class="machine">
         <div class="machine-top">
           <div class="marquee">
-            <span>★</span>
             <span class="marquee-text">DAILY REFLECTION</span>
-            <span>★</span>
           </div>
         </div>
 
         <div class="machine-body">
           <div class="reels-frame">
-            <div class="reel" id="reel-1">
-              <div class="reel-strip">
-                <div class="reel-item">Pull the lever…</div>
+            <div class="reel-wrap">
+              <div class="reel" id="reel-1">
+                <div class="reel-strip">
+                  <div class="reel-item">Pull the lever…</div>
+                </div>
               </div>
+              <div class="reel-label">Reflect</div>
             </div>
             <div class="reel-divider"></div>
-            <div class="reel" id="reel-2">
-              <div class="reel-strip">
-                <div class="reel-item">…and reflect.</div>
+            <div class="reel-wrap">
+              <div class="reel" id="reel-2">
+                <div class="reel-strip">
+                  <div class="reel-item">…and check in.</div>
+                </div>
               </div>
+              <div class="reel-label">Check in</div>
             </div>
           </div>
 
@@ -71,12 +75,10 @@
         <h2 class="paper-title">Today's Journal</h2>
         <p class="paper-date" id="paper-date"></p>
         <div class="prompts" id="prompts-display"></div>
-        <textarea id="journal-text" placeholder="Start writing here. Your entry auto-saves to this browser."></textarea>
         <div class="paper-actions">
           <button id="download-btn">Download as .txt</button>
-          <button id="clear-btn" class="ghost">Clear today's entry</button>
         </div>
-        <p class="paper-note">Entries live only in your browser (localStorage). Nothing is uploaded.</p>
+        <p class="paper-note">Auto-saves to this browser. Won't disappear if you close the tab. Download a copy if you want it forever.</p>
       </div>
     </section>
 
@@ -85,27 +87,118 @@
       <div class="research-card">
         <div class="research-header">
           <h2>This Week's Field of Curiosity</h2>
-          <p>Pick a word. Spend the week chasing it down rabbit holes.</p>
+          <p>Pull the rope. Catch the slip. Spend the week with the word.</p>
         </div>
 
-        <div class="research-display" id="research-display">
-          <span class="research-word" id="research-word">— ? —</span>
-          <p class="research-sub" id="research-sub">Tap the bell to draw a topic.</p>
+        <div class="bell-scene" id="bell-scene">
+          <div class="bell-beam"></div>
+
+          <!-- Bell + rope rig swings together from the top hook -->
+          <div class="bell-rig" id="bell-rig">
+            <svg class="bell-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="bellGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f6d77b" />
+                  <stop offset="55%" stop-color="#d4a14a" />
+                  <stop offset="100%" stop-color="#8a6420" />
+                </linearGradient>
+              </defs>
+              <!-- hanging cord -->
+              <path d="M 100 2 Q 99 8 100 14" fill="none" stroke="#3d2415" stroke-width="2.5" stroke-linecap="round" />
+              <!-- top loop where bell hangs -->
+              <path d="M 86 22 Q 100 4 114 22" fill="none" stroke="#3d2415" stroke-width="3.5" stroke-linecap="round" />
+              <!-- top collar / yoke -->
+              <path d="M 82 24 Q 100 30 118 24 L 116 38 Q 100 42 84 38 Z" fill="url(#bellGrad)" stroke="#3d2415" stroke-width="2.5" stroke-linejoin="round" />
+              <!-- bell body (wider, more bell-shaped) -->
+              <path d="M 80 40
+                       C 64 56, 48 92, 42 128
+                       Q 42 132 46 134
+                       L 154 134
+                       Q 158 132 158 128
+                       C 152 92, 136 56, 120 40
+                       Q 100 36 80 40 Z" fill="url(#bellGrad)" stroke="#3d2415" stroke-width="3.5" stroke-linejoin="round" />
+              <!-- cross-hatch shading on left flank -->
+              <path d="M 70 60 L 65 80 M 78 58 L 73 78 M 86 56 L 81 76 M 64 92 L 60 110 M 72 90 L 68 108 M 80 88 L 76 106" stroke="#3d2415" stroke-width="1.2" stroke-linecap="round" opacity="0.3" fill="none" />
+              <!-- highlight curve on right -->
+              <path d="M 126 52 Q 134 82 138 118" fill="none" stroke="#fff4d6" stroke-width="2.5" stroke-linecap="round" opacity="0.55" />
+              <!-- bell lip / flared rim -->
+              <path d="M 38 134 Q 100 144 162 134 L 156 154 Q 100 164 44 154 Z" fill="url(#bellGrad)" stroke="#3d2415" stroke-width="3.5" stroke-linejoin="round" />
+              <!-- decorative ring above lip -->
+              <path d="M 46 132 Q 100 138 154 132" fill="none" stroke="#3d2415" stroke-width="1.5" opacity="0.5" />
+              <!-- clapper -->
+              <circle cx="100" cy="146" r="6.5" fill="#3d2415" stroke="#1a0d05" stroke-width="1.5" />
+              <!-- clapper string -->
+              <path d="M 100 134 L 100 142" stroke="#3d2415" stroke-width="1.5" opacity="0.6" />
+            </svg>
+
+            <!-- Rope hangs from the clapper / bottom of bell -->
+            <div class="rope-wrap">
+              <svg class="rope-svg" viewBox="0 0 30 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="none">
+                <!-- main rope body -->
+                <path d="M 15 0 Q 12 25 16 50 Q 18 75 14 100 Q 12 120 15 138"
+                      fill="none" stroke="#8a6420" stroke-width="4" stroke-linecap="round" />
+                <!-- twisted fiber texture -->
+                <path d="M 15 0 Q 12 25 16 50 Q 18 75 14 100 Q 12 120 15 138"
+                      fill="none" stroke="#5a3a14" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="3 5" opacity="0.7" />
+              </svg>
+              <button class="rope-grip" id="rope-grip" aria-label="Pull the rope for this week's topic">
+                <svg viewBox="0 0 50 60" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <defs>
+                    <radialGradient id="knobGrad" cx="40%" cy="35%">
+                      <stop offset="0%" stop-color="#a87238" />
+                      <stop offset="55%" stop-color="#7a4b1f" />
+                      <stop offset="100%" stop-color="#3d2415" />
+                    </radialGradient>
+                  </defs>
+                  <!-- knot binding where rope meets knob -->
+                  <ellipse cx="25" cy="6" rx="7" ry="5" fill="#5a3a14" stroke="#2a1505" stroke-width="1.5" />
+                  <path d="M 19 5 Q 25 9 31 5" fill="none" stroke="#2a1505" stroke-width="1" opacity="0.6" />
+                  <!-- wooden knob body -->
+                  <ellipse cx="25" cy="34" rx="15" ry="18" fill="url(#knobGrad)" stroke="#2a1505" stroke-width="2" />
+                  <!-- wood grain rings -->
+                  <ellipse cx="25" cy="34" rx="11" ry="14" fill="none" stroke="#3d2415" stroke-width="0.6" opacity="0.5" />
+                  <ellipse cx="25" cy="34" rx="7" ry="9" fill="none" stroke="#3d2415" stroke-width="0.5" opacity="0.4" />
+                  <!-- highlight -->
+                  <ellipse cx="20" cy="26" rx="4" ry="6" fill="#d4a14a" opacity="0.4" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paper slip that gets pulled out of the bell -->
+          <div class="paper-slip" id="paper-slip">
+            <div class="paper-slip-inner">
+              <span class="paper-slip-word" id="paper-slip-word">pull the rope</span>
+              <span class="paper-slip-sub" id="paper-slip-sub">↑ ↑ ↑</span>
+            </div>
+          </div>
         </div>
 
-        <button id="research-btn" class="bell-btn" aria-label="Ring the bell for a new topic">
-          <span class="bell">🔔</span>
-          <span>Ring the bell</span>
-        </button>
+        <p class="bell-hint" id="bell-hint">Tap or drag the red knob ↓</p>
 
-        <div class="research-prompts" id="research-prompts" hidden>
-          <h3>Try this week:</h3>
-          <ul>
-            <li>Read one long-form article about it.</li>
-            <li>Find someone who knows about it and ask them a question.</li>
-            <li>Notice it in your real life — where does it show up?</li>
-            <li>Write one paragraph synthesizing what you learned.</li>
-          </ul>
+        <div class="research-brief" id="research-prompts" hidden>
+          <div class="brief-block">
+            <h3>① Pick any format <span class="brief-sub">— just not the same as last time</span></h3>
+            <p class="brief-line">Slides · short essay · research report · poster · zine · hand-drawn newspaper (手抄报) · short video · documentary · podcast episode · photo essay · infographic · data visualization · comic strip · song or annotated playlist · model · sculpture · handicraft · interactive web page · walking tour · live demo · performance · concept map · recipe or sensory experience · museum-style exhibit · letter to a stranger · field notebook · open Q&amp;A — invent your own.</p>
+            <p class="brief-note">Every week, change at least one small thing — medium, angle, length, voice, or staging.</p>
+          </div>
+
+          <div class="brief-block">
+            <h3>② Bring the audience in</h3>
+            <p class="brief-line">Your presentation must include some way the audience participates. Pick at least one:</p>
+            <ul class="brief-list">
+              <li>Design a small game tied to your topic.</li>
+              <li>Open with a question — collect answers before you show yours.</li>
+              <li>Stage a mini debate or panel.</li>
+              <li>Run a live vote (opinions, predictions, interpretations).</li>
+              <li>Build a touch / play station around the work.</li>
+              <li>Use a quiz, poll, or guessing round.</li>
+              <li>Invite the audience to add to the piece — collaborate live.</li>
+              <li>Let people interact directly with the work itself.</li>
+            </ul>
+          </div>
+
+          <p class="brief-tagline">Surprise. Learn. Share. Connect.</p>
         </div>
       </div>
     </section>
