@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Reflection Machine — A Vintage Slot for the Soul</title>
+  <meta name="description" content="Pull the lever to get two reflection prompts for journaling. Each week, dig into a new topic of curiosity." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Special+Elite&family=Pirata+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="bulb"></span>
+      <h1>The Reflection Machine</h1>
+      <span class="bulb"></span>
+    </div>
+    <p class="tagline">Pull the lever. Journal what falls out.</p>
+  </header>
+
+  <main>
+    <!-- SLOT MACHINE SECTION -->
+    <section class="machine-section" id="slot">
+      <div class="machine">
+        <div class="machine-top">
+          <div class="marquee">
+            <span>★</span>
+            <span class="marquee-text">DAILY REFLECTION</span>
+            <span>★</span>
+          </div>
+        </div>
+
+        <div class="machine-body">
+          <div class="reels-frame">
+            <div class="reel" id="reel-1">
+              <div class="reel-strip">
+                <div class="reel-item">Pull the lever…</div>
+              </div>
+            </div>
+            <div class="reel-divider"></div>
+            <div class="reel" id="reel-2">
+              <div class="reel-strip">
+                <div class="reel-item">…and reflect.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="coin-tray">
+            <button id="copy-btn" class="coin-btn" disabled>Copy prompts</button>
+            <button id="journal-btn" class="coin-btn primary" disabled>Open journal ↓</button>
+          </div>
+        </div>
+
+        <div class="lever" id="lever" role="button" aria-label="Pull the lever" tabindex="0">
+          <div class="lever-arm">
+            <div class="lever-shaft"></div>
+            <div class="lever-ball"></div>
+          </div>
+          <div class="lever-base"></div>
+        </div>
+      </div>
+
+      <p class="hint" id="hint">Tip: click or drag the red lever ↑↓</p>
+    </section>
+
+    <!-- JOURNAL SECTION -->
+    <section class="journal-section" id="journal">
+      <div class="paper">
+        <h2 class="paper-title">Today's Journal</h2>
+        <p class="paper-date" id="paper-date"></p>
+        <div class="prompts" id="prompts-display"></div>
+        <textarea id="journal-text" placeholder="Start writing here. Your entry auto-saves to this browser."></textarea>
+        <div class="paper-actions">
+          <button id="download-btn">Download as .txt</button>
+          <button id="clear-btn" class="ghost">Clear today's entry</button>
+        </div>
+        <p class="paper-note">Entries live only in your browser (localStorage). Nothing is uploaded.</p>
+      </div>
+    </section>
+
+    <!-- RESEARCH SECTION -->
+    <section class="research-section" id="research">
+      <div class="research-card">
+        <div class="research-header">
+          <h2>This Week's Field of Curiosity</h2>
+          <p>Pick a word. Spend the week chasing it down rabbit holes.</p>
+        </div>
+
+        <div class="research-display" id="research-display">
+          <span class="research-word" id="research-word">— ? —</span>
+          <p class="research-sub" id="research-sub">Tap the bell to draw a topic.</p>
+        </div>
+
+        <button id="research-btn" class="bell-btn" aria-label="Ring the bell for a new topic">
+          <span class="bell">🔔</span>
+          <span>Ring the bell</span>
+        </button>
+
+        <div class="research-prompts" id="research-prompts" hidden>
+          <h3>Try this week:</h3>
+          <ul>
+            <li>Read one long-form article about it.</li>
+            <li>Find someone who knows about it and ask them a question.</li>
+            <li>Notice it in your real life — where does it show up?</li>
+            <li>Write one paragraph synthesizing what you learned.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Made with curiosity. <span id="counter"></span></p>
+  </footer>
+
+  <script src="questions.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
